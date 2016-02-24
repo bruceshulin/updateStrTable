@@ -1,0 +1,16 @@
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\strtableUpdate.exe.config
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\strtableUpdate.exe
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\strtableUpdate.pdb
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\common.dll
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\EPPlus.dll
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\log.dll
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\log4net.dll
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\NPOI.dll
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\NPOI.OOXML.dll
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\NPOI.OpenXml4Net.dll
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Release\NPOI.OpenXmlFormats.dll
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\obj\Release\strtableUpdate.Form1.resources
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\obj\Release\strtableUpdate.Properties.Resources.resources
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\obj\Release\strtableUpdate.csproj.GenerateResource.Cache
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\obj\Release\strtableUpdate.exe
+G:\stringTableUpdate\strtableUpdate\strtableUpdate\obj\Release\strtableUpdate.pdb
