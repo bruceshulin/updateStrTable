@@ -49,8 +49,12 @@ namespace strtableUpdate
         {
             strData1 = new StringDataStruct();
             ReadStrTable(ExcelFile1, ref strData1);
-            ReadStrTable(ExcelFile1.Replace(".xls","1.xls"), ref strData1);
-
+            string excelfile2 = ExcelFile1.Replace(".xls", "1.xls");
+            if (System.IO.File.Exists(excelfile2) == true)
+            {
+                ReadStrTable(ExcelFile1.Replace(".xls", "1.xls"), ref strData1);
+            }
+            
             strData2 = new StringDataStruct();
             ReadStrTable(ExcelFile2, ref strData2);
 
@@ -402,8 +406,6 @@ namespace strtableUpdate
                                     strData.DicStringTable[sheetname].DicIDCountry[idCountryItem.Key].Add(countryValueItem.Key, countryValueItem.Value);
                                 }
                             }
-                          
-
                         }
                         else
                         {
@@ -416,10 +418,8 @@ namespace strtableUpdate
                 {
                     strData.DicStringTable.Add(sheetname, stridvalue);
                 }
-
                 //保存到数据库  后期字符串和网络参数都从数据库里拉
                 //strData.SavedicStringtoDataBase();
-
             }
 
             //把编辑过后的工作薄重新保存为excel文件
@@ -592,21 +592,31 @@ namespace strtableUpdate
                         continue;
                     }
                     cellid.SetCellType(CellType.String);
-                    if (CheckID(cellid.StringCellValue))    //用表2的数据来查找
+                    string id = cellid.StringCellValue;
+                    if (CheckID(id))    //用表2的数据来查找
                     {
                         findid++;
+                        //-------因为两个表都需要操作，所以加了未删除的记录－－－－
+                        //ID找到了，这里还需要记录下此ID未替换的国家及值
+                        //1先记录下来
+                        //2找到一个删除一个
+                        Dictionary<string, string> dicNoCountryValue = new Dictionary<string, string>();
+                        foreach (var itemNOCountryValue in CheckdicValue[id])
+                        {
+                            dicNoCountryValue.Add(itemNOCountryValue.Key, itemNOCountryValue.Value);
+                        }
                         //修改内容 
                         for (int cellindex = 0; cellindex < listTitle.Count(); cellindex++)
                         {
-                            if (CheckdicValue[cellid.StringCellValue].ContainsKey(listTitle[cellindex]))
+                            if (CheckdicValue[id].ContainsKey(listTitle[cellindex]))
                             {
-                               
-                                string value = CheckdicValue[cellid.StringCellValue][listTitle[cellindex]];
+                                dicNoCountryValue.Remove(listTitle[cellindex]);//删除找到的国家
+
+                                string value = CheckdicValue[id][listTitle[cellindex]];
                                 if (value == "")
                                 {
                                     continue;
                                 }
-
                                 ICell cellValue = sheet.GetRow(row).GetCell(cellindex+1);
                                 if (cellValue == null)
                                 {
@@ -622,9 +632,14 @@ namespace strtableUpdate
                                 replaceValue++;
                             }
                         }//endforcell
-                    }
+                        //如果某个ID没有找到某个国家，那么就记录下来
+                        if (dicNoCountryValue.Count >0)
+                        {
+                            CheckNOFinddicValue.Add(id, dicNoCountryValue);
+                        }
 
-                   
+                    }//endif 没有找到IDcontinue
+
                 }//endforrow
             }//endforsheet
             string path = @"strtab_bruce.xls";
@@ -639,10 +654,14 @@ namespace strtableUpdate
             Console.WriteLine("已找到的ID有：" + findid.ToString());
             Console.WriteLine("已替换的Value有：" + replaceValue.ToString());
             Console.WriteLine("重复数Value有：" + repateValue.ToString());
+
+            //第一次表查完后，第二次查找时用CheckNOFinddicValue来查找str_table1里重复或需要替换
+
         }//end fun
 
 
         Dictionary<string,Dictionary<string,string>> CheckdicValue = new  Dictionary<string,Dictionary<string,string>>();
+        Dictionary<string, Dictionary<string, string>> CheckNOFinddicValue = new Dictionary<string, Dictionary<string, string>>();
         private bool CheckID(string p)
         {
             if (CheckdicValue.Count<1)
@@ -726,8 +745,10 @@ namespace strtableUpdate
 	                    {
 		                    continue;
 	                    }
+                        //国家 值
                         dic.Add(listTitle[cellindex], cellvalue.StringCellValue);
                     }//endforcell
+                    //ID <国家 ，值>
                     dicValue.Add(cellid.StringCellValue,dic);
                 }//endforrow
             }//endforsheet
