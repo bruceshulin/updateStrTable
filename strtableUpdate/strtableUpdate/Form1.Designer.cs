@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.btnOpenStrTab = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -43,6 +44,7 @@
             this.btnValuetoTxt = new System.Windows.Forms.Button();
             this.cbTable2ValueEmpty = new System.Windows.Forms.CheckBox();
             this.cbTable1ExiseValue = new System.Windows.Forms.CheckBox();
+            this.btnTab2ImpTab1 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -77,7 +79,7 @@
             // 
             // btnStartCompare
             // 
-            this.btnStartCompare.Location = new System.Drawing.Point(649, 88);
+            this.btnStartCompare.Location = new System.Drawing.Point(649, 103);
             this.btnStartCompare.Name = "btnStartCompare";
             this.btnStartCompare.Size = new System.Drawing.Size(102, 35);
             this.btnStartCompare.TabIndex = 0;
@@ -87,7 +89,7 @@
             // 
             // btnOpenStr2
             // 
-            this.btnOpenStr2.Location = new System.Drawing.Point(12, 50);
+            this.btnOpenStr2.Location = new System.Drawing.Point(12, 65);
             this.btnOpenStr2.Name = "btnOpenStr2";
             this.btnOpenStr2.Size = new System.Drawing.Size(102, 35);
             this.btnOpenStr2.TabIndex = 0;
@@ -97,7 +99,7 @@
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(122, 58);
+            this.textBox3.Location = new System.Drawing.Point(122, 73);
             this.textBox3.Name = "textBox3";
             this.textBox3.Size = new System.Drawing.Size(629, 21);
             this.textBox3.TabIndex = 1;
@@ -154,7 +156,7 @@
             // 
             // btnImportIDtoTxt
             // 
-            this.btnImportIDtoTxt.Location = new System.Drawing.Point(399, 89);
+            this.btnImportIDtoTxt.Location = new System.Drawing.Point(399, 104);
             this.btnImportIDtoTxt.Name = "btnImportIDtoTxt";
             this.btnImportIDtoTxt.Size = new System.Drawing.Size(107, 33);
             this.btnImportIDtoTxt.TabIndex = 6;
@@ -164,7 +166,7 @@
             // 
             // btnValuetoTxt
             // 
-            this.btnValuetoTxt.Location = new System.Drawing.Point(512, 89);
+            this.btnValuetoTxt.Location = new System.Drawing.Point(512, 104);
             this.btnValuetoTxt.Name = "btnValuetoTxt";
             this.btnValuetoTxt.Size = new System.Drawing.Size(131, 33);
             this.btnValuetoTxt.TabIndex = 6;
@@ -175,7 +177,7 @@
             // cbTable2ValueEmpty
             // 
             this.cbTable2ValueEmpty.AutoSize = true;
-            this.cbTable2ValueEmpty.Location = new System.Drawing.Point(144, 120);
+            this.cbTable2ValueEmpty.Location = new System.Drawing.Point(144, 135);
             this.cbTable2ValueEmpty.Name = "cbTable2ValueEmpty";
             this.cbTable2ValueEmpty.Size = new System.Drawing.Size(126, 16);
             this.cbTable2ValueEmpty.TabIndex = 7;
@@ -185,12 +187,22 @@
             // cbTable1ExiseValue
             // 
             this.cbTable1ExiseValue.AutoSize = true;
-            this.cbTable1ExiseValue.Location = new System.Drawing.Point(144, 98);
+            this.cbTable1ExiseValue.Location = new System.Drawing.Point(144, 113);
             this.cbTable1ExiseValue.Name = "cbTable1ExiseValue";
             this.cbTable1ExiseValue.Size = new System.Drawing.Size(114, 16);
             this.cbTable1ExiseValue.TabIndex = 7;
             this.cbTable1ExiseValue.Text = "忽略表1存在的值";
             this.cbTable1ExiseValue.UseVisualStyleBackColor = true;
+            // 
+            // btnTab2ImpTab1
+            // 
+            this.btnTab2ImpTab1.Location = new System.Drawing.Point(286, 103);
+            this.btnTab2ImpTab1.Name = "btnTab2ImpTab1";
+            this.btnTab2ImpTab1.Size = new System.Drawing.Size(107, 33);
+            this.btnTab2ImpTab1.TabIndex = 6;
+            this.btnTab2ImpTab1.Text = "表2导入到表1";
+            this.btnTab2ImpTab1.UseVisualStyleBackColor = true;
+            this.btnTab2ImpTab1.Click += new System.EventHandler(this.btnTab2ImpTab1_Click);
             // 
             // Form1
             // 
@@ -200,6 +212,7 @@
             this.Controls.Add(this.cbTable1ExiseValue);
             this.Controls.Add(this.cbTable2ValueEmpty);
             this.Controls.Add(this.btnValuetoTxt);
+            this.Controls.Add(this.btnTab2ImpTab1);
             this.Controls.Add(this.btnImportIDtoTxt);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.label1);
@@ -208,6 +221,7 @@
             this.Controls.Add(this.btnOpenStr2);
             this.Controls.Add(this.btnStartCompare);
             this.Controls.Add(this.btnOpenStrTab);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "字符串对比";
             this.tabControl1.ResumeLayout(false);
@@ -235,6 +249,7 @@
         private System.Windows.Forms.Button btnValuetoTxt;
         private System.Windows.Forms.CheckBox cbTable2ValueEmpty;
         private System.Windows.Forms.CheckBox cbTable1ExiseValue;
+        private System.Windows.Forms.Button btnTab2ImpTab1;
     }
 }
 
