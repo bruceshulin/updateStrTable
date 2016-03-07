@@ -40,7 +40,6 @@ E:\工作代码\个人开发\stringTableUpdate\strtableUpdate\strtableUpdate\bin
 E:\工作代码\个人开发\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Debug\NPOI.xml
 E:\工作代码\个人开发\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Debug\NPOI.OOXML.xml
 E:\工作代码\个人开发\stringTableUpdate\strtableUpdate\strtableUpdate\bin\Debug\NPOI.OpenXml4Net.xml
-E:\工作代码\个人开发\stringTableUpdate\strtableUpdate\strtableUpdate\obj\Debug\strtableUpdate.csprojResolveAssemblyReference.cache
 E:\工作代码\个人开发\stringTableUpdate\strtableUpdate\strtableUpdate\obj\Debug\strtableUpdate.Form1.resources
 E:\工作代码\个人开发\stringTableUpdate\strtableUpdate\strtableUpdate\obj\Debug\strtableUpdate.Properties.Resources.resources
 E:\工作代码\个人开发\stringTableUpdate\strtableUpdate\strtableUpdate\obj\Debug\strtableUpdate.csproj.GenerateResource.Cache

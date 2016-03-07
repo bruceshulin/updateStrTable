@@ -49,12 +49,7 @@ namespace strtableUpdate
         {
             strData1 = new StringDataStruct();
             ReadStrTable(ExcelFile1, ref strData1);
-            string excelfile2 = ExcelFile1.Replace(".xls", "1.xls");
-            if (System.IO.File.Exists(excelfile2) == true)
-            {
-                ReadStrTable(ExcelFile1.Replace(".xls", "1.xls"), ref strData1);
-            }
-            
+
             strData2 = new StringDataStruct();
             ReadStrTable(ExcelFile2, ref strData2);
 
@@ -74,7 +69,6 @@ namespace strtableUpdate
 
         private void ViewInit()
         {
-
             //未添加ID初始化
             ViewIDInit();
             //不同值初始化
@@ -83,7 +77,6 @@ namespace strtableUpdate
             {
                 label1.Text = strprompor.Replace("%0", countNoTable1ID.ToString()).Replace("%1", listStrOptionDataInsertValue.Count.ToString());
             }));
-
         }
 
         private void ViewValueInit()
@@ -120,7 +113,6 @@ namespace strtableUpdate
         private void ViewIDInit()
         {
             //记算有多少个未添加ID
-
             int i = 0;
             foreach (string itemSheet in strOptionDataAddNewID.DicStringTable.Keys)
             {
@@ -246,13 +238,9 @@ namespace strtableUpdate
         }
 
 
-        /// <summary>
-        /// 弄成共用的
-        /// </summary>
-        /// <param name="ExcelFile"></param>
-        /// <param name="strData"></param>
         private void ReadStrTable(string ExcelFile, ref StringDataStruct strData)
         {
+
             //把文件内容导入到工作薄当中，然后关闭文件
             FileStream fs = new FileStream(ExcelFile, FileMode.Open, FileAccess.Read, FileShare.Read);
 
@@ -276,6 +264,7 @@ namespace strtableUpdate
                 for (int row = 0; row <= 1; row++)
                 {
                     int col = 0;
+
                     if (sheet.GetRow(row).Cells.Count <= 0)
                     {
                         continue;
@@ -341,9 +330,11 @@ namespace strtableUpdate
                         {
                             //表示是内容值数据
                             //  Console.WriteLine(cell.StringCellValue);
-                            
                             dicCountryValue.Add(listTitle[col - 1], cell.StringCellValue);
-
+                            if (listTitle[col - 1] == "Hebrew")
+                            {
+                                Console.WriteLine("haha");
+                            }
                         }
                         col++;
                         if (col > listTitle.Count)
@@ -351,6 +342,11 @@ namespace strtableUpdate
                             break;
                         }
                     }
+                    // foreach (ICell cell in sheet.GetRow(row).Cells) //cells  这一行的单元格
+                    //{
+
+
+                    // }
                     if (id == "" || string.IsNullOrEmpty(id) == true || id == "0")
                     {
                         //如果这一行没有ID，那么不保存这一行
@@ -360,64 +356,17 @@ namespace strtableUpdate
                     {
                         if (stridvalue.DicIDCountry.ContainsKey(id) == true)
                         {
-                            foreach (var item in dicCountryValue)
-                            {
-                                if (stridvalue.DicIDCountry[id].ContainsKey(item.Key))
-                                {
-                                    //当前ID国家已存在，跳过
-                                    continue;
-                                }
-                                else
-                                {
-                                    //当前的ID国家不存在，则保存
-                                    stridvalue.DicIDCountry[id][item.Key] = item.Value;
-                                }
-                            }
+                            id = id + "bruce2";
                         }
-                        else
-                        {
-                            stridvalue.DicIDCountry.Add(id, dicCountryValue);
-                        }
+                        stridvalue.DicIDCountry.Add(id, dicCountryValue);
                     }
+
                 }
-                string sheetname = workbook.GetSheetName(sheeti);
-                if (strData.DicStringTable.ContainsKey(sheetname) == true)
-                {
-                    //表名重复 循环ID
-                    foreach (var idCountryItem in stridvalue.DicIDCountry)
-                    {
-                        //有相同的ID
-                        if (strData.DicStringTable[sheetname].DicIDCountry.ContainsKey(idCountryItem.Key) == true)
-                        {
-                            //循环所有的国家和值，
-                            foreach (var countryValueItem in stridvalue.DicIDCountry[idCountryItem.Key])
-                            {
-                                //相同国家continue 不进行更改
-                                if (strData.DicStringTable[sheetname].DicIDCountry[idCountryItem.Key].ContainsKey(countryValueItem.Key) == true)
-                                {
-                                    //相同国家continue 不进行更改
-                                    continue;
-                                }
-                                else
-                                {
-                                    //不同的国家，需要添加上去
-                                    strData.DicStringTable[sheetname].DicIDCountry[idCountryItem.Key].Add(countryValueItem.Key, countryValueItem.Value);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            //添加ID和国家的值
-                            strData.DicStringTable[sheetname].DicIDCountry.Add(idCountryItem.Key, idCountryItem.Value);
-                        }
-                    }
-                }
-                else
-                {
-                    strData.DicStringTable.Add(sheetname, stridvalue);
-                }
+                strData.DicStringTable.Add(workbook.GetSheetName(sheeti), stridvalue);
+
                 //保存到数据库  后期字符串和网络参数都从数据库里拉
                 //strData.SavedicStringtoDataBase();
+
             }
 
             //把编辑过后的工作薄重新保存为excel文件
@@ -482,6 +431,7 @@ namespace strtableUpdate
                 {
                     sb.AppendLine("sheetName:" + itemSheet + "\tID:" + itemid + "\t");
                 }
+
             }
             System.IO.File.WriteAllText(txtpath, sb.ToString());
             MessageBox.Show("文件已导出到本程序根目录 tableid.txt中");
@@ -526,28 +476,77 @@ namespace strtableUpdate
                 //      改变表1数据
                 //保存
                 Thread th = new Thread(new ParameterizedThreadStart(updateTable));
+               // Thread th = new Thread(new ParameterizedThreadStart(importTab2toTab1));
                 th.Start((object)ExcelFile1);
                 CheckdicValue = new Dictionary<string, Dictionary<string, string>>();
             }
         }
+
         private void updateTable(object obj)
         {
-            string ExcelFile = (string)obj;
-            string saveExcel = "str_table_bruce.xls";
-            updateTab2toStrTab(ExcelFile, saveExcel);
-            string excelFile2 = ExcelFile.Replace(".xls", "1.xls");
-            saveExcel = "str_table1_bruce.xls";
-            updateTab2toStrTab(excelFile2, saveExcel);
+            //这里要更新两个表，str_table,str_table1
+            //把需要更新的表数据提取出来放到专门的一个类里面
+            //<id, <country,value,是否更新〉〉
+            upTab updateTab = GetUpTable(ExcelFile2); 
 
+            string savePath = "str_table_bruce.xls";
+            //更新到表1
+            UpdateToStr_table(ref updateTab, ExcelFile1, savePath);
+            //更新到表2
+            savePath = "str_table_bruce1.xls";
+            string strtable2 = ExcelFile1.Replace(".xls", "1.xls");
+            UpdateToStr_table(ref updateTab, strtable2, savePath);
+
+            //对正常更新中未更新的ID进行增加操作
+                    //1对每个要更新的字符分组，看他属于哪个表，如果这个国家都没有，那么不更新
+                    //2打开对就原表，在最后一行添加需要添加的数据
+
+
+
+
+            //统计还没有被替换的值
+            outPutNoReplaceValue(updateTab);
+            MessageBox.Show("替换表格完成");
         }
 
-        private void updateTab2toStrTab(string tableFile,string saveExcel)
+        private void outPutNoReplaceValue(upTab updateTab)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var item in updateTab.DicidValue)
+            {
+                foreach (var itemcountry in item.Value.DicCountryIsUpdate)
+                {
+                    if (itemcountry.Value == true)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        string info = string.Format("ID:{0} \tCountry:{1} \tValue:{2} 没有更新", item.Key, itemcountry.Key, item.Value.DicCountryValue[itemcountry.Key]);
+                        sb.AppendLine(info);
+                    }
+                }
+            }
+            string Nopath = "NoReplaceValue.txt";
+            if (System.IO.File.Exists(Nopath) == true)
+            {
+                System.IO.File.Delete(Nopath);
+            }
+            System.IO.File.WriteAllText(Nopath, sb.ToString());
+        }
+
+        private void UpdateToStr_table(ref upTab updateTab, string readExcelPath, string savePath)
         {
             int findid = 0;
             int replaceValue = 0;
             int repateValue = 0;
+            if (System.IO.File.Exists( readExcelPath) == false)
+            {
+                MessageBox.Show("文件：" + readExcelPath + "未找到！");
+                return;
+            }
             //把文件内容导入到工作薄当中，然后关闭文件
-            FileStream fs = new FileStream(tableFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+            FileStream fs = new FileStream(readExcelPath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             //获取Excel2007工作簿
             HSSFWorkbook workbook = new HSSFWorkbook(fs); //excel2007以下才可用
@@ -599,37 +598,257 @@ namespace strtableUpdate
                     }
                     cellid.SetCellType(CellType.String);
                     string id = cellid.StringCellValue;
-                    if (CheckID(id))    //用表2的数据来查找
+                    if (updateTab.DicidValue.ContainsKey(id) == true)
                     {
+
                         findid++;
-                        //-------因为两个表都需要操作，所以加了未删除的记录－－－－
-                        //ID找到了，这里还需要记录下此ID未替换的国家及值
-                        //1先记录下来
-                        //2找到一个删除一个
-                        Dictionary<string, string> dicNoCountryValue = new Dictionary<string, string>();
-                        foreach (var itemNOCountryValue in CheckdicValue[id])
-                        {
-                            //如果是表2，对重复的国家过滤掉
-                            if (tableFile.EndsWith("1.xls"))
-                            {
-                                if (checkTab2Replace(itemNOCountryValue.Key) == true)
-                                {
-                                    continue;
-                                }
-                            }
-                            dicNoCountryValue.Add(itemNOCountryValue.Key, itemNOCountryValue.Value);
-                        }
                         //修改内容 
                         for (int cellindex = 0; cellindex < listTitle.Count(); cellindex++)
                         {
-                            if (CheckdicValue[id].ContainsKey(listTitle[cellindex]))
+                            string country = listTitle[cellindex];
+                            //这个ID里有该国家并且  这个国家的值之前没有被替换过
+                            if (updateTab.DicidValue[id].DicCountryValue.ContainsKey(country) == true && updateTab.DicidValue[id].DicCountryIsUpdate[country] == false)
                             {
-                                dicNoCountryValue.Remove(listTitle[cellindex]);//删除找到的国家
-                                string value = CheckdicValue[id][listTitle[cellindex]];
+
+                                updateTab.DicidValue[id].DicCountryIsUpdate[country] = true;//更新到updateTable里面去以后碰到了就跳过
+                                string value = updateTab.DicidValue[id].DicCountryValue[country];
                                 if (value == "")
                                 {
                                     continue;
                                 }
+
+                                ICell cellValue = sheet.GetRow(row).GetCell(cellindex + 1);
+                                if (cellValue == null)
+                                {
+                                    sheet.CreateRow(row).CreateCell(cellindex);
+                                    cellValue = sheet.GetRow(row).GetCell(cellindex);
+                                }
+                                if (value == cellValue.StringCellValue)
+                                {
+                                    repateValue++;
+                                    continue; //前后字符串一致
+                                }
+                                cellValue.SetCellValue(value);
+                                replaceValue++;
+                            }
+                        }//endforcell
+                    }
+                }//endforrow
+            }//endforsheet
+            if (System.IO.File.Exists(savePath) == true)
+            {
+                System.IO.File.Delete(savePath);
+            }
+            FileStream fs2 = File.Create(savePath);
+            workbook.Write(fs2);
+            fs2.Close();
+            //MessageBox.Show("表2导入到表1完成,更新后的数据已导出到 " + savePath + "表中");
+            string prompt = "表2导入到表1完成,更新后的数据已导出到 " + savePath + "表中\r\n"+"已找到的ID有：" + findid.ToString() + "已替换的Value有：" + replaceValue.ToString() + "重复数Value有：" + repateValue.ToString();
+            MessageBox.Show(prompt);
+            Console.WriteLine("已找到的ID有：" + findid.ToString());
+            Console.WriteLine("已替换的Value有：" + replaceValue.ToString());
+            Console.WriteLine("重复数Value有：" + repateValue.ToString());
+
+
+        }
+
+        private upTab GetUpTable(string excelPath)
+        {
+            upTab updateTable = new upTab();
+
+            Dictionary<string, Dictionary<string, string>> dicValue = new Dictionary<string, Dictionary<string, string>>();
+            //把文件内容导入到工作薄当中，然后关闭文件
+            FileStream fs = new FileStream(excelPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            //获取Excel2007工作簿
+            HSSFWorkbook workbook = new HSSFWorkbook(fs); //excel2007以下才可用
+            fs.Close();
+
+            //编辑工作薄当中内容
+            //取表
+            for (int sheeti = 0; sheeti < workbook.NumberOfSheets; sheeti++)
+            {
+                ISheet sheet = workbook.GetSheetAt(sheeti);
+                if (sheet.GetRow(0) == null)
+                {
+                    continue;
+                }
+                //取行
+                stringIdCountry stridvalue = new stringIdCountry();
+                List<string> listTitle = new List<string>();
+                for (int row = 0; row <= 1; row++)      //循环第一行
+                {
+                    int col = 0;
+                    if (sheet.GetRow(row).Cells.Count <= 0)
+                    {
+                        continue;
+                    }
+                    foreach (ICell cell in sheet.GetRow(row).Cells) //cells  这一行的单元格
+                    {
+                        cell.SetCellType(CellType.String);
+
+                        if (row == 0)  //表示是ID列 表示是第一行标题行
+                        {
+                            listTitle.Add(cell.StringCellValue);
+                            Console.WriteLine(" 标题：" + cell.StringCellValue);
+                        }
+                        col++;
+                    }
+                }
+                //结束取标题
+
+                for (int row = 1; row <= sheet.LastRowNum; row++)
+                {
+                    string id = "";
+                    ICell cellid = sheet.GetRow(row).GetCell(0);
+                    if (cellid == null || cellid.StringCellValue == "")
+                    {
+                        continue;
+                    }
+                    cellid.SetCellType(CellType.String);
+                   id = cellid.StringCellValue;
+                    //修改内容 
+                    upTabCountry tmpCountry = new upTabCountry();
+                    for (int cellindex = 1; cellindex < listTitle.Count(); cellindex++)
+                    {
+                        ICell cellvalue = sheet.GetRow(row).GetCell(cellindex);
+                        if (cellvalue == null || cellvalue.StringCellValue == "")
+                        {
+                            continue;
+                        }
+                        tmpCountry.AddCountry(listTitle[cellindex], cellvalue.StringCellValue);
+                    }//endforcell
+                    updateTable.DicidValue.Add(id, tmpCountry);
+                }//endforrow
+            }//endforsheet
+            return updateTable;
+        }
+        class upTab
+        {
+            Dictionary<string, upTabCountry> dicidValue = new Dictionary<string, upTabCountry>();
+
+            public Dictionary<string, upTabCountry> DicidValue
+            {
+                get { return dicidValue; }
+                set { dicidValue = value; }
+            }
+        }
+        class upTabCountry
+        {
+
+
+            Dictionary<string, string> dicCountryValue = new Dictionary<string, string>();
+
+            public Dictionary<string, string> DicCountryValue
+            {
+                get { return dicCountryValue; }
+                set { dicCountryValue = value; }
+            }
+            Dictionary<string, bool> dicCountryIsUpdate = new Dictionary<string, bool>();
+
+            public Dictionary<string, bool> DicCountryIsUpdate
+            {
+                get { return dicCountryIsUpdate; }
+                set { dicCountryIsUpdate = value; }
+            }
+            public bool AddCountry(string country, string value)
+            {
+                if (dicCountryValue.ContainsKey(country) == true)
+                {
+                    //如果添加的数据有重复的国家那么不添加进来
+                    Lv.Log.Write("添加国家的数据有重复的国家那么不添加进来!", Lv.Log.MessageType.Warn);
+                    return false;
+                }
+                dicCountryValue.Add(country, value);
+                dicCountryIsUpdate.Add(country, false);
+                return true;
+            }
+            public bool updateCountry(string country)
+            {
+                if (dicCountryIsUpdate.ContainsKey(country)==true)
+                {
+                    dicCountryIsUpdate[country] = true;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        private void importTab2toTab1(object obj)
+        {
+            int findid = 0;
+            int replaceValue = 0;
+            int repateValue = 0;
+            string ExcelFile = (string)obj;
+            //把文件内容导入到工作薄当中，然后关闭文件
+            FileStream fs = new FileStream(ExcelFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            //获取Excel2007工作簿
+            HSSFWorkbook workbook = new HSSFWorkbook(fs); //excel2007以下才可用
+            fs.Close();
+
+            //编辑工作薄当中内容
+            //取表
+            for (int sheeti = 0; sheeti < workbook.NumberOfSheets; sheeti++)
+            {
+                ISheet sheet = workbook.GetSheetAt(sheeti);
+                if (sheet.GetRow(0) == null)
+                {
+                    continue;
+                }
+                //取行
+                stringIdCountry stridvalue = new stringIdCountry();
+                List<string> listTitle = new List<string>();
+                for (int row = 0; row <= 1; row++)      //循环第一行
+                {
+                    int col = 0;
+                    if (sheet.GetRow(row).Cells.Count <= 0)
+                    {
+                        continue;
+                    }
+                    foreach (ICell cell in sheet.GetRow(row).Cells) //cells  这一行的单元格
+                    {
+                        cell.SetCellType(CellType.String);
+                        //取标题
+                        if (row == 0 && col == 0)
+                        {
+                            //只是ID不需要记录
+                        }
+                        else if (row == 0)  //表示是ID列 表示是第一行标题行
+                        {
+                            listTitle.Add(cell.StringCellValue);
+                            Console.WriteLine(" 标题：" + cell.StringCellValue);
+                        }
+                        col++;
+                    }
+                }
+                //结束取标题
+
+                for (int row = 1; row <= sheet.LastRowNum; row++)
+                {
+                    ICell cellid = sheet.GetRow(row).GetCell(0);//测试ID 是否存在
+                    if (cellid == null)
+                    {
+                        continue;
+                    }
+                    cellid.SetCellType(CellType.String);
+                    if (CheckID(cellid.StringCellValue))    //用表2的数据来查找
+                    {
+                        findid++;
+                        //修改内容 
+                        for (int cellindex = 0; cellindex < listTitle.Count(); cellindex++)
+                        {
+                            if (CheckdicValue[cellid.StringCellValue].ContainsKey(listTitle[cellindex]))
+                            {
+                               
+                                string value = CheckdicValue[cellid.StringCellValue][listTitle[cellindex]];
+                                if (value == "")
+                                {
+                                    continue;
+                                }
+
                                 ICell cellValue = sheet.GetRow(row).GetCell(cellindex+1);
                                 if (cellValue == null)
                                 {
@@ -645,42 +864,25 @@ namespace strtableUpdate
                                 replaceValue++;
                             }
                         }//endforcell
-                        //如果某个ID没有找到某个国家，那么就记录下来
-                        if (dicNoCountryValue.Count >0)
-                        {
-                            //CheckNOFinddicValue.Add(id, dicNoCountryValue);
-                            //System.IO.File.WriteAllText()
-                        }
-                    }//endif 没有找到IDcontinue
-
+                    }
                 }//endforrow
             }//endforsheet
-
-            if (System.IO.File.Exists(saveExcel) == true)
+            string path = @"strtab_bruce.xls";
+            if (System.IO.File.Exists(path) == true)
             {
-                System.IO.File.Delete(saveExcel);
+                System.IO.File.Delete(path);
             }
-            FileStream fs2 = File.Create(saveExcel);
+            FileStream fs2 = File.Create(path);
             workbook.Write(fs2);
             fs2.Close();
-            MessageBox.Show("表2导入到表str_table完成");
+            MessageBox.Show("表2导入到表1完成");
             Console.WriteLine("已找到的ID有：" + findid.ToString());
             Console.WriteLine("已替换的Value有：" + replaceValue.ToString());
             Console.WriteLine("重复数Value有：" + repateValue.ToString());
-
-            //第一次表查完后，第二次查找时用CheckNOFinddicValue来查找str_table1里重复或需要替换
-        }
-
-        private bool checkTab2Replace(string p)
-        {
-            List<string> list = new List<string>();
-            list.Add("");
-            return true;
         }//end fun
 
 
         Dictionary<string,Dictionary<string,string>> CheckdicValue = new  Dictionary<string,Dictionary<string,string>>();
-        Dictionary<string, Dictionary<string, string>> CheckNOFinddicValue = new Dictionary<string, Dictionary<string, string>>();
         private bool CheckID(string p)
         {
             if (CheckdicValue.Count<1)
@@ -745,8 +947,6 @@ namespace strtableUpdate
 
                 for (int row = 1; row <= sheet.LastRowNum; row++)
                 {
-                    int col = 0;
-                    string id = "";
                     ICell cellid = sheet.GetRow(row).GetCell(0);
                     if (cellid == null || cellid.StringCellValue == "" )
 	                {
@@ -764,10 +964,8 @@ namespace strtableUpdate
 	                    {
 		                    continue;
 	                    }
-                        //国家 值
                         dic.Add(listTitle[cellindex], cellvalue.StringCellValue);
                     }//endforcell
-                    //ID <国家 ，值>
                     dicValue.Add(cellid.StringCellValue,dic);
                 }//endforrow
             }//endforsheet
