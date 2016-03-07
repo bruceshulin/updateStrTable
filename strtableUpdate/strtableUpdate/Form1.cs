@@ -1,4 +1,5 @@
 ﻿using NPOI.HSSF.UserModel;
+using NPOI.POIFS.FileSystem;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
@@ -487,21 +488,29 @@ namespace strtableUpdate
             //这里要更新两个表，str_table,str_table1
             //把需要更新的表数据提取出来放到专门的一个类里面
             //<id, <country,value,是否更新〉〉
-            upTab updateTab = GetUpTable(ExcelFile2); 
+            UpTab updateTab = GetUpTable(ExcelFile2);
 
-            string savePath = "str_table_bruce.xls";
+            List<string> strtable1_language = new List<string>();
+            List<string> strtable2_language = new List<string>();
+            string savePath1 = "str_table_bruce.xls";
             //更新到表1
-            UpdateToStr_table(ref updateTab, ExcelFile1, savePath);
+            UpdateToStr_table(ref updateTab, ExcelFile1, savePath1,ref strtable1_language);
             //更新到表2
-            savePath = "str_table_bruce1.xls";
+            string savePath2 = "str_table_bruce1.xls";
             string strtable2 = ExcelFile1.Replace(".xls", "1.xls");
-            UpdateToStr_table(ref updateTab, strtable2, savePath);
+            UpdateToStr_table(ref updateTab, strtable2, savePath2,ref strtable2_language);
 
             //对正常更新中未更新的ID进行增加操作
                     //1对每个要更新的字符分组，看他属于哪个表，如果这个国家都没有，那么不更新
-                    //2打开对就原表，在最后一行添加需要添加的数据
-
-
+                    //2打开原表，在最后一行添加需要添加的数据
+            foreach (string itemcountry in strtable1_language)
+            {
+                if (strtable2_language.Contains(itemcountry) == true)
+                {
+                    strtable2_language.Remove(itemcountry);
+                }
+            }
+            insertIDtoTable(ref updateTab, savePath1, strtable1_language);
 
 
             //统计还没有被替换的值
@@ -509,7 +518,176 @@ namespace strtableUpdate
             MessageBox.Show("替换表格完成");
         }
 
-        private void outPutNoReplaceValue(upTab updateTab)
+        /// <summary>
+        /// 把表里没有的ID插入进去
+        /// </summary>
+        /// <param name="updateTab"></param>
+        /// <param name="savePath1"></param>
+        /// <param name="strtable1_language"></param>
+        private void insertIDtoTable(ref UpTab updateTab, string savePath, List<string> strtable1_language)
+        {
+            // updateTab.DicidValue[id].DicCountryIsUpdate[country]  这个值是真说明已经更新过了，没有说明需要插入操作
+            FileStream fs = new FileStream(savePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            POIFSFileSystem ps = new POIFSFileSystem(fs);//需using NPOI.POIFS.FileSystem;
+            IWorkbook workbook = new HSSFWorkbook(ps);
+            ISheet sheet = workbook.GetSheetAt(0);//获取工作表
+
+            IRow row = sheet.GetRow(0); //得到表头
+            
+            FileStream fout = new FileStream(savePath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);//写入流
+
+            //取行
+            List<string> listtitle = new List<string>();
+            stringIdCountry stridvalue = new stringIdCountry();
+            for (int rowindex = 0; rowindex < 1; rowindex++)      //循环第一行
+            {
+                int col = 0;
+                if (sheet.GetRow(rowindex).Cells.Count <= 0)
+                {
+                    continue;
+                }
+                foreach (ICell cell in sheet.GetRow(rowindex).Cells) //cells  这一行的单元格
+                {
+                    cell.SetCellType(CellType.String);
+                    //取标题
+
+                    listtitle.Add(cell.StringCellValue);
+                    Console.WriteLine(" 标题：" + cell.StringCellValue);
+                    col++;
+                }
+            }
+            //结束取标题
+
+            UpTab tmpTab = new UpTab();
+            //写入数据区
+            foreach (var item in updateTab.DicidValue)
+            {
+                foreach (var itemcountry in item.Value.DicCountryIsUpdate)
+                {
+                    if (itemcountry.Value == true)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        //string info = string.Format("ID:{0} \tCountry:{1} \tValue:{2} 没有更新", item.Key, itemcountry.Key, item.Value.DicCountryValue[itemcountry.Key]);
+                        //sb.AppendLine(info);
+                        row = sheet.CreateRow((sheet.LastRowNum + 1));//在工作表中添加一行
+                        ICell cell1 = row.CreateCell(0);
+                        cell1.SetCellValue(item.Key);//赋值ID
+                        UpTabCountry tmpcountry = new UpTabCountry();
+                        for (int indextitle = 1; indextitle < listtitle.Count; indextitle++)
+                        {
+                            if (itemcountry.Key == listtitle[indextitle])   //要添加的国家一致
+                            {
+                                cell1 = row.CreateCell(indextitle);
+                                cell1.SetCellValue(item.Value.DicCountryValue[itemcountry.Key]);//赋值国家值
+                                tmpcountry.AddCountry(itemcountry.Key,item.Value.DicCountryValue[itemcountry.Key]);
+                                if (tmpTab.DicidValue.ContainsKey(item.Key))
+                                {
+                                    tmpTab.DicidValue[item.Key].AddCountry(itemcountry.Key, item.Value.DicCountryValue[itemcountry.Key]);
+                                    tmpTab.DicidValue[item.Key].DicCountryIsUpdate[itemcountry.Key] = true;
+                                }
+                                else
+                                {
+                                    tmpTab.DicidValue.Add(item.Key, tmpcountry);
+                                }
+                                
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            //把插入的数据更新到updateTab里去
+            foreach (var item in tmpTab.DicidValue)
+            {
+                foreach (var itemcountry in item.Value.DicCountryIsUpdate)
+                {
+                    if (updateTab.DicidValue.ContainsKey(item.Key))
+                    {
+                        if (updateTab.DicidValue.ContainsKey(itemcountry.Key))
+                        {
+                            updateTab.DicidValue[item.Key].DicCountryIsUpdate[itemcountry.Key] = true;
+                        }
+                    }
+                }
+            }
+
+            //结束写入数据区
+
+
+
+
+            fout.Flush();
+            workbook.Write(fout);//写入文件
+            workbook = null;
+            fout.Close();
+
+            /*
+            //获取Excel2007工作簿
+            HSSFWorkbook workbook = new HSSFWorkbook(fs); //excel2007以下才可用
+            fs.Close();
+
+            //编辑工作薄当中内容
+            //取表
+
+                ISheet sheet = workbook.GetSheetAt(1);
+                if (sheet.GetRow(0) == null)
+                {
+                    return;
+                }
+                //取行
+                List<string> listtitle = new List<string>();
+                stringIdCountry stridvalue = new stringIdCountry();
+                for (int rowindex = 0; rowindex <= 1; rowindex++)      //循环第一行
+                {
+                    int col = 0;
+                    if (sheet.GetRow(rowindex).Cells.Count <= 0)
+                    {
+                        continue;
+                    }
+                    foreach (ICell cell in sheet.GetRow(rowindex).Cells) //cells  这一行的单元格
+                    {
+                        cell.SetCellType(CellType.String);
+                        //取标题
+                        if (rowindex == 0 && col == 0)
+                        {
+                            //只是ID不需要记录
+                        }
+                        else if (rowindex == 0)  //表示是ID列 表示是第一行标题行
+                        {
+                            listtitle.Add(cell.StringCellValue);
+                            Console.WriteLine(" 标题：" + cell.StringCellValue);
+                        }
+                        col++;
+                    }
+                }
+                //结束取标题
+
+
+                IRow row = sheet.CreateRow(sheet.LastRowNum);//在工作表中添加一行
+                for (int i = 0; i < listtitle.Count -1; i++)
+                {
+                     ICell cell = row.CreateCell(0);//创建单元格
+                     cell.SetCellValue("领用单位");//赋值
+                }
+                
+
+            if (System.IO.File.Exists(savePath) == true)
+            {
+                System.IO.File.Delete(savePath);
+            }
+            FileStream fs2 = File.Create(savePath);
+            workbook.Write(fs2);
+            fs2.Close();
+             * 
+             */
+        }
+
+        private void outPutNoReplaceValue(UpTab updateTab)
         {
             StringBuilder sb = new StringBuilder();
             foreach (var item in updateTab.DicidValue)
@@ -535,7 +713,7 @@ namespace strtableUpdate
             System.IO.File.WriteAllText(Nopath, sb.ToString());
         }
 
-        private void UpdateToStr_table(ref upTab updateTab, string readExcelPath, string savePath)
+        private void UpdateToStr_table(ref UpTab updateTab, string readExcelPath, string savePath, ref List<string> strtable_language)
         {
             int findid = 0;
             int replaceValue = 0;
@@ -563,7 +741,6 @@ namespace strtableUpdate
                 }
                 //取行
                 stringIdCountry stridvalue = new stringIdCountry();
-                List<string> listTitle = new List<string>();
                 for (int row = 0; row <= 1; row++)      //循环第一行
                 {
                     int col = 0;
@@ -581,7 +758,7 @@ namespace strtableUpdate
                         }
                         else if (row == 0)  //表示是ID列 表示是第一行标题行
                         {
-                            listTitle.Add(cell.StringCellValue);
+                            strtable_language.Add(cell.StringCellValue);
                             Console.WriteLine(" 标题：" + cell.StringCellValue);
                         }
                         col++;
@@ -603,9 +780,9 @@ namespace strtableUpdate
 
                         findid++;
                         //修改内容 
-                        for (int cellindex = 0; cellindex < listTitle.Count(); cellindex++)
+                        for (int cellindex = 0; cellindex < strtable_language.Count(); cellindex++)
                         {
-                            string country = listTitle[cellindex];
+                            string country = strtable_language[cellindex];
                             //这个ID里有该国家并且  这个国家的值之前没有被替换过
                             if (updateTab.DicidValue[id].DicCountryValue.ContainsKey(country) == true && updateTab.DicidValue[id].DicCountryIsUpdate[country] == false)
                             {
@@ -652,9 +829,9 @@ namespace strtableUpdate
 
         }
 
-        private upTab GetUpTable(string excelPath)
+        private UpTab GetUpTable(string excelPath)
         {
-            upTab updateTable = new upTab();
+            UpTab updateTable = new UpTab();
 
             Dictionary<string, Dictionary<string, string>> dicValue = new Dictionary<string, Dictionary<string, string>>();
             //把文件内容导入到工作薄当中，然后关闭文件
@@ -708,7 +885,7 @@ namespace strtableUpdate
                     cellid.SetCellType(CellType.String);
                    id = cellid.StringCellValue;
                     //修改内容 
-                    upTabCountry tmpCountry = new upTabCountry();
+                    UpTabCountry tmpCountry = new UpTabCountry();
                     for (int cellindex = 1; cellindex < listTitle.Count(); cellindex++)
                     {
                         ICell cellvalue = sheet.GetRow(row).GetCell(cellindex);
@@ -723,17 +900,17 @@ namespace strtableUpdate
             }//endforsheet
             return updateTable;
         }
-        class upTab
+        class UpTab
         {
-            Dictionary<string, upTabCountry> dicidValue = new Dictionary<string, upTabCountry>();
+            Dictionary<string, UpTabCountry> dicidValue = new Dictionary<string, UpTabCountry>();
 
-            public Dictionary<string, upTabCountry> DicidValue
+            public Dictionary<string, UpTabCountry> DicidValue
             {
                 get { return dicidValue; }
                 set { dicidValue = value; }
             }
         }
-        class upTabCountry
+        class UpTabCountry
         {
 
 
