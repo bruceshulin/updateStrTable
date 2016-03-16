@@ -558,11 +558,12 @@ namespace strtableUpdate
                 }
             }
             //结束取标题
-
+            int insertCellNum = 0;
             UpTab tmpTab = new UpTab();
-            //写入数据区
+            //写入数据区  id 及国家所有数据
             foreach (var item in updateTab.DicidValue)
             {
+                //国家及是否更新过变量
                 foreach (var itemcountry in item.Value.DicCountryIsUpdate)
                 {
                     if (itemcountry.Value == true)
@@ -573,17 +574,27 @@ namespace strtableUpdate
                     {
                         //string info = string.Format("ID:{0} \tCountry:{1} \tValue:{2} 没有更新", item.Key, itemcountry.Key, item.Value.DicCountryValue[itemcountry.Key]);
                         //sb.AppendLine(info);
-                        row = sheet.CreateRow((sheet.LastRowNum + 1));//在工作表中添加一行
-                        ICell cell1 = row.CreateCell(0);
-                        cell1.SetCellValue(item.Key);//赋值ID
+                        ICell cell1 = null;
+                        if (tmpTab.DicidValue.ContainsKey(item.Key) == true)
+                        {
+                            //不做设置
+                            row = sheet.GetRow(sheet.LastRowNum);//在工作表中添加一行
+                        }
+                        else
+                        {
+                            row = sheet.CreateRow((sheet.LastRowNum + 1));//在工作表中添加一行
+                            cell1 = row.CreateCell(0);
+                            cell1.SetCellValue(item.Key);//赋值ID
+                        }
                         UpTabCountry tmpcountry = new UpTabCountry();
                         for (int indextitle = 1; indextitle < listtitle.Count; indextitle++)
                         {
                             if (itemcountry.Key == listtitle[indextitle])   //要添加的国家一致
                             {
+                                insertCellNum++;
                                 cell1 = row.CreateCell(indextitle);
                                 cell1.SetCellValue(item.Value.DicCountryValue[itemcountry.Key]);//赋值国家值
-                                tmpcountry.AddCountry(itemcountry.Key,item.Value.DicCountryValue[itemcountry.Key]);
+                                tmpcountry.AddCountry(itemcountry.Key, item.Value.DicCountryValue[itemcountry.Key]);
                                 if (tmpTab.DicidValue.ContainsKey(item.Key))
                                 {
                                     tmpTab.DicidValue[item.Key].AddCountry(itemcountry.Key, item.Value.DicCountryValue[itemcountry.Key]);
@@ -593,7 +604,11 @@ namespace strtableUpdate
                                 {
                                     tmpTab.DicidValue.Add(item.Key, tmpcountry);
                                 }
-                                
+
+                            }
+                            else
+                            {
+                                //国家不一致就跳过
                             }
                         }
 
@@ -601,7 +616,7 @@ namespace strtableUpdate
                 }
             }
 
-            //把插入的数据更新到updateTab里去
+            //把插入的数据更新到updateTab里去  由于前面是foreach所以这里就重新循环了一次
             foreach (var item in tmpTab.DicidValue)
             {
                 foreach (var itemcountry in item.Value.DicCountryIsUpdate)
@@ -617,74 +632,12 @@ namespace strtableUpdate
             }
 
             //结束写入数据区
-
-
-
-
             fout.Flush();
             workbook.Write(fout);//写入文件
             workbook = null;
             fout.Close();
+            MessageBox.Show(string.Format( "插入的ID有{0}个， 插入的单元格有{1}个",tmpTab.DicidValue.Count().ToString(),insertCellNum.ToString()));
 
-            /*
-            //获取Excel2007工作簿
-            HSSFWorkbook workbook = new HSSFWorkbook(fs); //excel2007以下才可用
-            fs.Close();
-
-            //编辑工作薄当中内容
-            //取表
-
-                ISheet sheet = workbook.GetSheetAt(1);
-                if (sheet.GetRow(0) == null)
-                {
-                    return;
-                }
-                //取行
-                List<string> listtitle = new List<string>();
-                stringIdCountry stridvalue = new stringIdCountry();
-                for (int rowindex = 0; rowindex <= 1; rowindex++)      //循环第一行
-                {
-                    int col = 0;
-                    if (sheet.GetRow(rowindex).Cells.Count <= 0)
-                    {
-                        continue;
-                    }
-                    foreach (ICell cell in sheet.GetRow(rowindex).Cells) //cells  这一行的单元格
-                    {
-                        cell.SetCellType(CellType.String);
-                        //取标题
-                        if (rowindex == 0 && col == 0)
-                        {
-                            //只是ID不需要记录
-                        }
-                        else if (rowindex == 0)  //表示是ID列 表示是第一行标题行
-                        {
-                            listtitle.Add(cell.StringCellValue);
-                            Console.WriteLine(" 标题：" + cell.StringCellValue);
-                        }
-                        col++;
-                    }
-                }
-                //结束取标题
-
-
-                IRow row = sheet.CreateRow(sheet.LastRowNum);//在工作表中添加一行
-                for (int i = 0; i < listtitle.Count -1; i++)
-                {
-                     ICell cell = row.CreateCell(0);//创建单元格
-                     cell.SetCellValue("领用单位");//赋值
-                }
-                
-
-            if (System.IO.File.Exists(savePath) == true)
-            {
-                System.IO.File.Delete(savePath);
-            }
-            FileStream fs2 = File.Create(savePath);
-            workbook.Write(fs2);
-            fs2.Close();
-             * 
-             */
         }
 
         private void outPutNoReplaceValue(UpTab updateTab)
